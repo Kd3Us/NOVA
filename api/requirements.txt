@@ -1,0 +1,17 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+pydantic==2.5.0
+
+python-multipart==0.0.6
+
+# Potentiels modèles IA 
+# openai==1.3.0              # Pour GPT-3.5/GPT-4
+# anthropic==0.7.0           # Pour Claude
+# transformers==4.35.0       # Pour Hugging Face
+# torch==2.1.0               # Pour modèles locaux
+# requests==2.31.0           # Pour API calls
+# python-dotenv==1.0.0       # Pour variables d'environnement
+
+python-dateutil==2.8.2
+uuid==1.30
