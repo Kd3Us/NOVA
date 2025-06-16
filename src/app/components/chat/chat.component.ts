@@ -1,4 +1,3 @@
-// src/app/components/chat/chat.component.ts
 import { Component, ElementRef, ViewChild, AfterViewChecked, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -44,7 +43,7 @@ export interface Message {
       <div class="chat-header">
         <div class="logo">
           <mat-icon>psychology</mat-icon>
-          <span>NOVA - Agent IA</span>
+          <span>NOVA - Assistant IA</span>
         </div>
         <div class="status" [ngClass]="{'connected': isConnected, 'disconnected': !isConnected}">
           <mat-icon>{{ isConnected ? 'wifi' : 'wifi_off' }}</mat-icon>
@@ -55,29 +54,31 @@ export interface Message {
       <!-- Messages -->
       <div class="messages-container" #messagesContainer>
         <div *ngFor="let message of messages" class="message" [ngClass]="{'user-msg': message.isUser, 'bot-msg': !message.isUser, 'error-msg': message.error}">
-          <div class="message-avatar">
-            <mat-icon>{{ message.isUser ? 'person' : (message.error ? 'error' : 'smart_toy') }}</mat-icon>
-          </div>
-          <div class="message-content">
-            <div class="message-text">
-              <span *ngIf="!message.typing">{{ message.content }}</span>
-              <div *ngIf="message.typing" class="typing-indicator">
-                <span>🤖 Agent Hamadi traite votre demande</span>
-                <div class="typing-animation">
-                  <span></span>
-                  <span></span>
-                  <span></span>
+          <div class="message-wrapper">
+            <div class="message-avatar">
+              <mat-icon>{{ message.isUser ? 'person' : (message.error ? 'error' : 'smart_toy') }}</mat-icon>
+            </div>
+            <div class="message-content">
+              <div class="message-text">
+                <span *ngIf="!message.typing">{{ message.content }}</span>
+                <div *ngIf="message.typing" class="typing-indicator">
+                  <span>NOVA analyse votre demande</span>
+                  <div class="typing-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="message-meta">
-              <span class="message-time">{{ formatTime(message.timestamp) }}</span>
-              <span *ngIf="message.processingTime && !message.isUser" class="processing-time">
-                ⚡ {{ message.processingTime }}s
-              </span>
-              <span *ngIf="message.modelUsed && !message.isUser" class="model-used">
-                🧠 {{ message.modelUsed }}
-              </span>
+              <div class="message-meta">
+                <span class="message-time">{{ formatTime(message.timestamp) }}</span>
+                <span *ngIf="message.processingTime && !message.isUser" class="processing-time">
+                  {{ message.processingTime.toFixed(2) }}s
+                </span>
+                <span *ngIf="message.modelUsed && !message.isUser" class="model-used">
+                  {{ message.modelUsed }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -87,13 +88,13 @@ export interface Message {
       <div class="input-container">
         <form [formGroup]="chatForm" (ngSubmit)="sendMessage()" class="input-form">
           <mat-form-field appearance="outline" class="message-input">
-            <mat-label>{{ isConnected ? 'Tapez votre message à l\'Agent NOVA...' : 'API déconnectée - Vérifiez le serveur Python' }}</mat-label>
+            <mat-label>{{ isConnected ? 'Posez votre question à NOVA...' : 'API déconnectée - Vérifiez le serveur' }}</mat-label>
             <input 
               matInput 
               formControlName="message" 
               [disabled]="isLoading || !isConnected"
               (keydown.enter)="sendMessage()"
-              placeholder="Comment puis-je vous aider aujourd'hui ?"
+              placeholder="Comment puis-je vous assister aujourd'hui ?"
             >
             <mat-icon matSuffix>{{ isConnected ? 'chat' : 'warning' }}</mat-icon>
           </mat-form-field>
@@ -115,11 +116,11 @@ export interface Message {
         <div class="chat-actions">
           <button mat-button (click)="checkApiConnection()" [disabled]="isLoading">
             <mat-icon>refresh</mat-icon>
-            Vérifier API
+            Test Connexion
           </button>
           <button mat-button (click)="clearHistory()" [disabled]="isLoading" color="warn">
             <mat-icon>clear_all</mat-icon>
-            Effacer historique
+            Réinitialiser
           </button>
         </div>
       </div>
@@ -190,96 +191,128 @@ export interface Message {
       flex: 1;
       overflow-y: auto;
       padding: 20px;
-      background: #f8f9fa;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+      background: #f5f5f5;
     }
 
     .message {
-      display: flex;
-      gap: 12px;
-      animation: slideIn 0.3s ease-out;
+      margin-bottom: 15px;
+      width: 100%;
     }
 
+    .message-wrapper {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Messages utilisateur à droite */
     .user-msg {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .user-msg .message-wrapper {
       flex-direction: row-reverse;
+      max-width: 80%;
+    }
+
+    /* Messages bot à gauche */
+    .bot-msg {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .bot-msg .message-wrapper {
+      flex-direction: row;
+      max-width: 80%;
+    }
+
+    .error-msg {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .error-msg .message-wrapper {
+      flex-direction: row;
+      max-width: 80%;
     }
 
     .message-avatar {
-      width: 40px;
-      height: 40px;
+      flex-shrink: 0;
+      width: 35px;
+      height: 35px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
-      color: white;
     }
 
     .user-msg .message-avatar {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      background: #4caf50;
+      color: white;
     }
 
     .bot-msg .message-avatar {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: #2196f3;
+      color: white;
     }
 
     .error-msg .message-avatar {
-      background: linear-gradient(135deg, #f44336, #d32f2f);
+      background: #f44336;
+      color: white;
     }
 
     .message-content {
-      max-width: 70%;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      flex: 1;
+      min-width: 0;
     }
 
     .message-text {
       padding: 12px 16px;
       border-radius: 18px;
-      word-wrap: break-word;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 5px;
+      line-height: 1.5;
       color: #333;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      font-size: 14px;
-      line-height: 1.4;
+      font-weight: 500;
+      word-wrap: break-word;
     }
 
     .user-msg .message-text {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
+      background: #e3f2fd;
+      color: #1565c0;
+      border: 1px solid #2196f3;
     }
 
     .bot-msg .message-text {
       background: white;
       color: #333;
-      border: 1px solid #e1e5e9;
+      border: 1px solid #e0e0e0;
     }
 
     .error-msg .message-text {
       background: #ffebee;
       color: #c62828;
-      border: 1px solid #ef9a9a;
+      border: 1px solid #f44336;
     }
 
     .typing-indicator {
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 8px;
+      font-style: italic;
+      color: #666;
     }
 
     .typing-animation {
       display: flex;
-      gap: 4px;
+      gap: 3px;
     }
 
     .typing-animation span {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: #667eea;
+      background: #2196f3;
       animation: typing 1.4s infinite ease-in-out;
     }
 
@@ -287,43 +320,34 @@ export interface Message {
     .typing-animation span:nth-child(2) { animation-delay: -0.16s; }
 
     @keyframes typing {
-      0%, 80%, 100% {
-        transform: scale(0);
-        opacity: 0.5;
-      }
-      40% {
-        transform: scale(1);
-        opacity: 1;
-      }
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
     }
 
     .message-meta {
       display: flex;
-      gap: 8px;
-      font-size: 10px;
-      color: #666;
-      padding: 0 8px;
+      gap: 10px;
+      font-size: 11px;
+      color: #555;
+      font-weight: 500;
+      padding-left: 4px;
     }
 
     .user-msg .message-meta {
       justify-content: flex-end;
-    }
-
-    .processing-time, .model-used {
-      background: rgba(102, 126, 234, 0.1);
-      padding: 2px 6px;
-      border-radius: 8px;
+      padding-right: 4px;
+      padding-left: 0;
     }
 
     .input-container {
       padding: 20px;
       background: white;
-      border-top: 1px solid #e1e5e9;
+      border-top: 1px solid #e0e0e0;
     }
 
     .input-form {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: flex-end;
       margin-bottom: 10px;
     }
@@ -333,7 +357,7 @@ export interface Message {
     }
 
     .send-btn {
-      background: linear-gradient(135deg, #667eea, #764ba2) !important;
+      flex-shrink: 0;
     }
 
     .chat-actions {
@@ -344,17 +368,6 @@ export interface Message {
 
     .chat-actions button {
       font-size: 12px;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     /* Scrollbar styling */
@@ -378,7 +391,7 @@ export interface Message {
   `]
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
-  @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
+  @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
   chatForm = new FormGroup({
     message: new FormControl('', [Validators.required, Validators.minLength(1)])
@@ -396,20 +409,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   ) {}
 
   ngOnInit() {
-    // S'abonner au statut de connexion
     const connectionSub = this.novaApi.connectionStatus$.subscribe(
       status => {
         this.isConnected = status;
         if (status) {
           this.addWelcomeMessage();
         } else {
-          this.showErrorMessage('🚨 Connexion à l\'API NOVA perdue');
+          this.showErrorMessage('Connexion à l\'API NOVA interrompue');
         }
       }
     );
     this.subscriptions.push(connectionSub);
 
-    // Vérifier la connexion initiale
     this.checkApiConnection();
   }
 
@@ -428,7 +439,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         container.scrollTop = container.scrollHeight;
       }
     } catch (err) {
-      console.log('Scroll error:', err);
+      console.log('Erreur de défilement:', err);
     }
   }
 
@@ -438,9 +449,31 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.isLoading = false;
     
     if (isConnected) {
-      this.showSuccessMessage('✅ Connexion à l\'API NOVA établie');
+      this.showSuccessMessage('API NOVA opérationnelle');
     } else {
-      this.showErrorMessage('❌ Impossible de se connecter à l\'API NOVA');
+      this.showErrorMessage('Échec de connexion à l\'API NOVA');
+    }
+  }
+
+  private addWelcomeMessage() {
+    if (this.messages.length === 0) {
+      const welcomeMessage: Message = {
+        id: 'welcome',
+        content: `Interface NOVA Initialisée
+
+Bonjour ! Je suis votre assistant IA NOVA. Je suis prêt à vous aider avec vos questions et tâches.
+
+Fonctionnalités disponibles :
+• Analyse et traitement de requêtes
+• Assistance technique et informative  
+• Support en temps réel
+
+Comment puis-je vous assister aujourd'hui ?`,
+        isUser: false,
+        timestamp: new Date(),
+        modelUsed: 'NOVA-Core'
+      };
+      this.messages.push(welcomeMessage);
     }
   }
 
@@ -449,7 +482,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       const messageText = this.chatForm.get('message')?.value?.trim();
       
       if (messageText) {
-        // Ajouter le message utilisateur
         const userMessage: Message = {
           id: Date.now().toString(),
           content: messageText,
@@ -461,7 +493,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         this.chatForm.reset();
         this.isLoading = true;
 
-        // Ajouter l'indicateur de frappe
         const typingMessage: Message = {
           id: Date.now().toString() + '_typing',
           content: '',
@@ -472,13 +503,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         
         this.messages.push(typingMessage);
 
-        // Envoyer à l'API
         const apiSub = this.novaApi.sendMessage(messageText).subscribe({
           next: (response: ChatResponse) => {
-            // Supprimer l'indicateur de frappe
             this.messages = this.messages.filter(m => !m.typing);
             
-            // Ajouter la réponse de l'IA
             const aiResponse: Message = {
               id: response.id,
               content: response.content,
@@ -492,13 +520,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
             this.isLoading = false;
           },
           error: (error: ApiError) => {
-            // Supprimer l'indicateur de frappe
             this.messages = this.messages.filter(m => !m.typing);
             
-            // Ajouter un message d'erreur
             const errorMessage: Message = {
               id: Date.now().toString() + '_error',
-              content: error.message,
+              content: `Erreur de communication
+
+Impossible de traiter votre demande. Veuillez réessayer.
+
+Détail: ${error.message}`,
               isUser: false,
               timestamp: new Date(),
               error: true
@@ -506,45 +536,19 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
             
             this.messages.push(errorMessage);
             this.isLoading = false;
-            this.showErrorMessage('Erreur de communication avec l\'Agent Hamadi');
+            this.showErrorMessage('Échec de l\'envoi du message');
           }
         });
-        
+
         this.subscriptions.push(apiSub);
       }
     }
   }
 
   clearHistory() {
-    if (this.isConnected) {
-      const clearSub = this.novaApi.clearChatHistory().subscribe({
-        next: () => {
-          this.messages = [];
-          this.addWelcomeMessage();
-          this.showSuccessMessage('Historique effacé');
-        },
-        error: (error: ApiError) => {
-          this.showErrorMessage('Erreur lors de l\'effacement: ' + error.message);
-        }
-      });
-      this.subscriptions.push(clearSub);
-    } else {
-      // Effacement local si pas de connexion
-      this.messages = [];
-      this.showSuccessMessage('Historique local effacé');
-    }
-  }
-
-  private addWelcomeMessage() {
-    if (this.messages.length === 0) {
-      const welcomeMessage: Message = {
-        id: 'welcome',
-        content: '🚀 Bonjour Agent ! Je suis l\'Agent Hamadi, votre assistant IA NOVA. Connexion établie et prêt pour la mission !',
-        isUser: false,
-        timestamp: new Date()
-      };
-      this.messages.push(welcomeMessage);
-    }
+    this.messages = [];
+    this.addWelcomeMessage();
+    this.showSuccessMessage('Historique réinitialisé');
   }
 
   formatTime(date: Date): string {
@@ -557,14 +561,18 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private showSuccessMessage(message: string) {
     this.snackBar.open(message, 'Fermer', {
       duration: 3000,
-      panelClass: ['success-snackbar']
+      panelClass: ['snackbar-success'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
     });
   }
 
   private showErrorMessage(message: string) {
     this.snackBar.open(message, 'Fermer', {
       duration: 5000,
-      panelClass: ['error-snackbar']
+      panelClass: ['snackbar-error'],
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
     });
   }
 }

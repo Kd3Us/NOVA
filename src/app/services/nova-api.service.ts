@@ -62,12 +62,12 @@ export class NovaApiService {
       return true;
     } catch (error) {
       this.connectionStatus.next(false);
-      console.warn('🚨 API NOVA non accessible:', error);
+      console.warn('API NOVA non accessible:', error);
       return false;
     }
   }
 
-  sendMessage(message: string, userId: string = 'agent'): Observable<ChatResponse> {
+  sendMessage(message: string, userId: string = 'user'): Observable<ChatResponse> {
     const request: ChatRequest = {
       message: message.trim(),
       user_id: userId,
@@ -123,86 +123,28 @@ export class NovaApiService {
     return this.http.delete(`${this.apiUrl}/chat/history/${this.currentSessionId}`)
       .pipe(
         timeout(this.timeout_duration),
-        map(response => {
-          this.currentSessionId = null;
-          return response;
-        }),
-        catchError(this.handleError.bind(this))
-      );
-  }
-
-  isConnected(): boolean {
-    return this.connectionStatus.value;
-  }
-
-  getCurrentSessionId(): string | null {
-    return this.currentSessionId;
-  }
-
-  startNewSession(): void {
-    this.currentSessionId = null;
-  }
-
-  pingApi(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/`)
-      .pipe(
-        timeout(5000),
         catchError(this.handleError.bind(this))
       );
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     let apiError: ApiError;
-
+    
     if (error.error instanceof ErrorEvent) {
       apiError = {
-        message: `Erreur de connexion: ${error.error.message}`,
+        message: `Erreur client: ${error.error.message}`,
         status: 0,
         timestamp: new Date()
       };
     } else {
-      // Erreur côté serveur
-      switch (error.status) {
-        case 0:
-          apiError = {
-            message: '🚨 API NOVA inaccessible. Vérifiez que le serveur Python est démarré.',
-            status: error.status,
-            timestamp: new Date()
-          };
-          break;
-        case 404:
-          apiError = {
-            message: '🔍 Endpoint non trouvé sur l\'API NOVA.',
-            status: error.status,
-            timestamp: new Date()
-          };
-          break;
-        case 500:
-          apiError = {
-            message: '⚠️ Erreur interne de l\'API NOVA. Vérifiez les logs du serveur.',
-            status: error.status,
-            timestamp: new Date()
-          };
-          break;
-        case 422:
-          apiError = {
-            message: '📝 Données invalides envoyées à l\'API NOVA.',
-            status: error.status,
-            timestamp: new Date()
-          };
-          break;
-        default:
-          apiError = {
-            message: `🚨 Erreur API NOVA: ${error.error?.detail || error.message}`,
-            status: error.status,
-            timestamp: new Date()
-          };
-      }
+      apiError = {
+        message: error.error?.detail || error.message || 'Erreur serveur inconnue',
+        status: error.status,
+        timestamp: new Date()
+      };
     }
 
-    this.connectionStatus.next(false);
-
-    console.error('🚨 Erreur API NOVA:', apiError);
+    console.error('Erreur API NOVA:', apiError);
     return throwError(() => apiError);
   }
 }

@@ -7,7 +7,7 @@ from datetime import datetime
 import uuid
 
 app = FastAPI(
-    title="NOVA API ",
+    title="NOVA API",
     description="API Intelligence Artificielle pour l'Interface NOVA",
     version="1.0.0",
     docs_url="/docs",
@@ -24,7 +24,7 @@ app.add_middleware(
 
 class ChatMessage(BaseModel):
     message: str
-    user_id: Optional[str] = "agent"
+    user_id: Optional[str] = "user"
     session_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
@@ -48,23 +48,19 @@ class AIModelConfig(BaseModel):
     max_tokens: int
     temperature: float
 
-# Simulation de base de données en mémoire
 sessions_db = {}
 messages_history = {}
 
-
 @app.get("/", response_model=dict)
 async def root():
-    """Point d'entrée de l'API NOVA"""
     return {
-        "message": "🚀 NOVA API ",
+        "message": "NOVA API",
         "status": "active",
         "documentation": "/docs"
     }
 
 @app.get("/health", response_model=HealthCheck)
 async def health_check():
-    """Vérification de l'état de l'API et des modèles IA"""
     return HealthCheck(
         status="operational",
         timestamp=datetime.now(),
@@ -74,7 +70,6 @@ async def health_check():
 
 @app.get("/ai/models", response_model=List[AIModelConfig])
 async def get_available_models():
-    """Liste des modèles IA disponibles"""
     return [
         AIModelConfig(
             model_name="gpt-3.5-turbo",
@@ -108,17 +103,12 @@ async def get_available_models():
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_with_ai(message_data: ChatMessage):
-    """
-    Endpoint principal pour communiquer avec l'IA
-    Sera connecté au modèle spécifique après le briefing
-    """
     try:
         session_id = message_data.session_id or str(uuid.uuid4())
         message_id = str(uuid.uuid4())
         
         start_time = datetime.now()
         
-        # modèle IA spécifique à implémenter
         ai_response = await process_with_ai_model(
             message=message_data.message,
             session_id=session_id,
@@ -140,7 +130,7 @@ async def chat_with_ai(message_data: ChatMessage):
             id=message_id,
             content=ai_response,
             timestamp=datetime.now(),
-            model_used="nova-simulator",  # A modifié
+            model_used="nova-simulator",
             processing_time=processing_time,
             session_id=session_id
         )
@@ -150,7 +140,6 @@ async def chat_with_ai(message_data: ChatMessage):
 
 @app.get("/chat/history/{session_id}")
 async def get_chat_history(session_id: str):
-    """Récupérer l'historique d'une session de chat"""
     if session_id not in messages_history:
         raise HTTPException(status_code=404, detail="Session non trouvée")
     
@@ -162,7 +151,6 @@ async def get_chat_history(session_id: str):
 
 @app.delete("/chat/history/{session_id}")
 async def clear_chat_history(session_id: str):
-    """Effacer l'historique d'une session"""
     if session_id in messages_history:
         del messages_history[session_id]
         return {"message": f"Historique de la session {session_id} effacé"}
@@ -170,40 +158,35 @@ async def clear_chat_history(session_id: str):
         raise HTTPException(status_code=404, detail="Session non trouvée")
 
 async def process_with_ai_model(message: str, session_id: str, user_id: str) -> str:
-    """
-    Fonction modulaire pour traiter les messages avec l'IA
-    A remplacer avec le vrai modèle
-    """
-    
     message_lower = message.lower()
     
     responses = {
-        "bonjour": "🚀 Bonjour à toi ! ",
-        "salut": "👋 Salut ! Comment puis-je vous assister ?",
-        "comment": "🤔 Excellente question ! Laissez-moi analyser cela ",
-        "aide": "🆘 ",
-        "mission": "📋 Mission reçue ! Analyse en cours... ",
-        "test": "✅ Test système réussi ! ",
-        "merci": "😊 De rien ! C'est un plaisir de travailler avec vous",
+        "bonjour": "Bonjour ! Comment puis-je vous assister aujourd'hui ?",
+        "salut": "Salut ! Que puis-je faire pour vous ?",
+        "comment": "Excellente question ! Laissez-moi analyser cela pour vous.",
+        "aide": "Je suis là pour vous aider. Que souhaitez-vous savoir ?",
+        "mission": "Mission reçue ! Analyse en cours...",
+        "test": "Test système réussi ! Tous les systèmes sont opérationnels.",
+        "merci": "De rien ! C'est un plaisir de vous assister.",
     }
     
     for keyword, response in responses.items():
         if keyword in message_lower:
-            return f"{response}\n\n💭 Analyse de votre message : '{message}' - Session: {session_id[:8]}"
+            return f"{response}\n\nAnalyse de votre message : '{message}' - Session: {session_id[:8]}"
     
     return f"""Analyse terminée !
 
 Votre message: "{message}"
 
-🔍 Résultat de l'analyse:
+Résultat de l'analyse:
 - Message traité avec succès
 
-🎯 Comment puis-je vous assister davantage ?"""
+Comment puis-je vous assister davantage ?"""
 
 if __name__ == "__main__":
-    print("🚀 Lancement de l'API NOVA")
-    print("📡 Interface disponible sur: http://localhost:8000")
-    print("📖 Documentation: http://localhost:8000/docs")
+    print("Lancement de l'API NOVA")
+    print("Interface disponible sur: http://localhost:8000")
+    print("Documentation: http://localhost:8000/docs")
     
     uvicorn.run(
         "main:app",
